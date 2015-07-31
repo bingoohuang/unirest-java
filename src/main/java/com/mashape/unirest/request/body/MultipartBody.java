@@ -156,7 +156,7 @@ public class MultipartBody extends BaseRequest implements Body {
 						}
 						builder.addPart(key, new ByteArrayBody(bytes, contentType, file.getOriginalFilename()));
 					} else {
-						builder.addPart(key, new StringBody(cur.toString(), contentType));
+						builder.addPart(key, new StringBody(cur == null ? "" : cur.toString(), contentType));
 					}
 				}
 			}
