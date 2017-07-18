@@ -21,21 +21,26 @@ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
 LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+ */
 
 package com.mashape.unirest.request;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.mashape.unirest.http.HttpMethod;
 import com.mashape.unirest.http.utils.Base64Coder;
 import com.mashape.unirest.http.utils.URLParamEncoder;
 import com.mashape.unirest.request.body.Body;
-
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class HttpRequest extends BaseRequest {
 
@@ -103,7 +108,10 @@ public class HttpRequest extends BaseRequest {
 		}
 		try {
 			String s = ValueUtils.processValue(value);
-			queryString.append(name).append("=").append(URLEncoder.encode(s, "UTF-8"));
+			queryString
+				.append(URLEncoder.encode(name))
+				.append("=")
+				.append(URLEncoder.encode(s, "UTF-8"));
 		} catch (UnsupportedEncodingException e) {
 			throw new RuntimeException(e);
 		}
@@ -133,7 +141,8 @@ public class HttpRequest extends BaseRequest {
 	}
 
 	public Map<String, List<String>> getHeaders() {
-		if (headers == null) return new HashMap<String, List<String>>();
+		if (headers == null)
+			return new HashMap<String, List<String>>();
 		return headers;
 	}
 

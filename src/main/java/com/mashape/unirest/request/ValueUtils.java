@@ -1,6 +1,6 @@
 package com.mashape.unirest.request;
 
-import com.github.bingoohuang.utils.codec.Json;
+import com.alibaba.fastjson.JSON;
 import com.google.common.primitives.Primitives;
 
 public class ValueUtils {
@@ -14,7 +14,7 @@ public class ValueUtils {
 		if (Primitives.isWrapperType(value.getClass())) return value.toString();
 		if (value instanceof Enum) return value.toString();
 
-		return Json.json(value);
+		return JSON.toJSONString(value);
 	}
 
 }

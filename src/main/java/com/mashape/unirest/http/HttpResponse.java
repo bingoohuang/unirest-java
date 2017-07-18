@@ -21,10 +21,12 @@ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
 LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+ */
 
 package com.mashape.unirest.http;
 
+import com.mashape.unirest.http.options.Option;
+import com.mashape.unirest.http.options.Options;
 import com.mashape.unirest.http.utils.ResponseUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -49,12 +51,14 @@ public class HttpResponse<T> {
 	@SuppressWarnings("unchecked")
 	public HttpResponse(org.apache.http.HttpResponse response, Class<T> responseClass) {
 		HttpEntity responseEntity = response.getEntity();
+		ObjectMapper objectMapper = (ObjectMapper) Options.getOption(Option.OBJECT_MAPPER);
 
 		Header[] allHeaders = response.getAllHeaders();
 		for (Header header : allHeaders) {
 			String headerName = header.getName();
 			List<String> list = headers.get(headerName);
-			if (list == null) list = new ArrayList<String>();
+			if (list == null)
+				list = new ArrayList<String>();
 			list.add(header.getValue());
 			headers.put(headerName, list);
 		}
@@ -84,8 +88,7 @@ public class HttpResponse<T> {
 				} catch (IOException e2) {
 					throw new RuntimeException(e2);
 				}
-				InputStream inputStream = new ByteArrayInputStream(rawBody);
-				this.rawBody = inputStream;
+				this.rawBody = new ByteArrayInputStream(rawBody);
 
 				if (JsonNode.class.equals(responseClass)) {
 					String jsonString = new String(rawBody, charset).trim();
@@ -94,19 +97,17 @@ public class HttpResponse<T> {
 					this.body = (T) new String(rawBody, charset);
 				} else if (InputStream.class.equals(responseClass)) {
 					this.body = (T) this.rawBody;
+				} else if (objectMapper != null) {
+					this.body = objectMapper.readValue(new String(rawBody, charset), responseClass);
 				} else {
-					throw new Exception("Unknown result type. Only String, JsonNode and InputStream are supported.");
+					throw new Exception("Only String, JsonNode and InputStream are supported, or an ObjectMapper implementation is required.");
 				}
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}
 		}
-
-		try {
-			EntityUtils.consume(responseEntity);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+		
+		EntityUtils.consumeQuietly(responseEntity);
 	}
 
 	public int getStatus() {
@@ -117,6 +118,10 @@ public class HttpResponse<T> {
 		return statusText;
 	}
 
+	/**
+	 * @return Response Headers (map) with <b>same case</b> as server response.
+	 * For instance use <code>getHeaders().getFirst("Location")</code> and not <code>getHeaders().getFirst("location")</code> to get first header "Location"
+	 */
 	public Headers getHeaders() {
 		return headers;
 	}
@@ -132,5 +137,4 @@ public class HttpResponse<T> {
 	public T getBody() {
 		return body;
 	}
-
 }
